@@ -7,3 +7,7 @@
 *.toc
 *.gz
 .DS_Store
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
