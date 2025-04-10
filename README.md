@@ -13,3 +13,13 @@ As part of my thesis, I switched to BibTex.  The requirements needed to use BibT
 The example steps for BibTex were debugged on a Mac. Given the "*.bat" files, the approach above probably will not work out of the box on a Mac.  Here is a link with more general information on using BibTex.
 
 I am also including a Texmaker session so you can load it into Texmaker directly.  You need to modify the session file to match the local path on your machine.  If you can get TexStudio working instead, it is a better tool in my humble opinion.
+
+<h3> Building in Linux </h3>
+
+If you are using Linux, none of the above building instructions apply. The easiest way to compile `thesis.tex` is by using `latexmk`, which is the default compilation method used by Overleaf.
+
+For most Linux distros, using [TexLive](https://www.tug.org/texlive/) should be the easiest way of getting a Tex environment up and running. The following [discussion](https://tex.stackexchange.com/questions/542696/latexmk-after-texlive-installation) details how to install `latexmk`. Once installed, simply build using:
+
+```bash
+latexmk thesis.tex
+```
