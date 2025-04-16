@@ -21,13 +21,13 @@ This approach is similar to the one followed by Mishra, A. et al. in \cite{mishr
 The five malware families are:
 \begin{itemize}
     \item \textbf{Airpush/StopSMS}: adware that displays unwanted ads and may silently collect
-    and forward user data \cite{fsecure2025airpush}. 
+          and forward user data \cite{fsecure2025airpush}.
     \item \textbf{SMSReg}: riskware discovered as the ``Battery Improve'' application \cite{fsecure2025smsreg}.
     \item \textbf{Malap}: spyware that collects sensitive information from the device \cite{guerra2021kronodroid}.
     \item \textbf{Boxer}: trojan that pretends to be a legitime installer but actually sends premium-rate
-    SMS messages unbeknown to the user \cite{fsecure2025boxer}.
+          SMS messages unbeknown to the user \cite{fsecure2025boxer}.
     \item \textbf{Agent}: trojan that downloads and installs adware or malware into a victim's
-    device \cite{fsecure2025agent}.
+          device \cite{fsecure2025agent}.
 \end{itemize}
 
 \subsection{Data Preprocessing}
@@ -46,18 +46,18 @@ after preprocessing.
     \begin{center}
         \textbf{Kronodroid Dataset (dimensionality = 470)}
         \vspace{0.5cm}
-        
+
         \begin{tabular}{lccc}
             \toprule
             \textbf{Family} & \textbf{Samples} & \textbf{Earliest Date} & \textbf{Latest Date} \\
             \midrule
-            Agent               & 2826 & 2008-02-28 & 2020-07-17 \\
-            Airpush/StopSMS     & 7760 & 2008-02-29 & 2018-06-15 \\
-            Boxer               & 3597 & 2005-01-01 & 2018-06-15 \\
-            Malap               & 4018 & 2008-02-29 & 2020-11-11 \\
-            SMSreg              & 4989 & 2008-02-29 & 2020-11-09 \\
+            Agent           & 2826             & 2008-02-28             & 2020-07-17           \\
+            Airpush/StopSMS & 7760             & 2008-02-29             & 2018-06-15           \\
+            Boxer           & 3597             & 2005-01-01             & 2018-06-15           \\
+            Malap           & 4018             & 2008-02-29             & 2020-11-11           \\
+            SMSreg          & 4989             & 2008-02-29             & 2020-11-09           \\
             \bottomrule
-            Total             & 23190 \\
+            Total           & 23190                                                            \\
         \end{tabular}
         \caption{Summary of the Kronodroid dataset after preprocessing.}
         \label{fig:kronodroid_summary}
@@ -109,7 +109,7 @@ For a given malware family $F$,
 let $B$ be a temporal batch of samples. In our experiments, we define batches
 of size $b = 50$ samples for a total of $K$ batches. We denote the $i$-th batch as
 $$B_{i} = \{f^{i \cdot b}, f^{i \cdot b + 1}, \ldots, f^{(i+1) \cdot b - 1}\}
-~\forall~ i \in \{0, 1, \ldots,  K\}, K = \lfloor \frac{N}{b} \rfloor$$.
+    ~\forall~ i \in \{0, 1, \ldots,  K\}, K = \lfloor \frac{N}{b} \rfloor$$.
 For example, the first batch is $B_{0} = \{f^{0}, f^{1}, \ldots, f^{49}\}$.
 The second batch is $B_{1} = \{f^{50}, f^{51}, \ldots, f^{99}\}$.
 The last batch is $B_{K-1} = \{f^{(K-1) \cdot b}, f^{(K-1) \cdot b + 1}, \ldots, f^{N-1}\}$.
