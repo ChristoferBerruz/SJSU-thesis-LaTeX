@@ -1,20 +1,75 @@
-\chapter{The Files}
+\chapter{Implementation}
+\section{Dataset\label{sec:dataset}}
+The study of concept drift in malware detection requires a dataset in which samples
+can be ordered by some time dimension. This project uses the KronoDroid dataset, introduced in
+\cite{guerra2021kronodroid} and retrieved from \cite{guerra2021github}.
+The KronoDroid dataset contains 41,382 \textbf{real}
+Android malware samples belonging to 240 distinct malware families.
+Note that the KronoDroid dataset contains both emulated and real samples; this project
+focuses on the real samples only. The samples in KronoDroid are considered
+hybrid as they contain 200 static features
+(permissions, intents, hardware/software requirements) and
+289 dynamic features (system calls).
+More importantly, each sample contains four different timestamps.
+In this project, we use the \textbf{HighestModDate} timestamp.
 
-For this thesis
-format, you \LaTeX\ the file {\tt thesis.tex}. 
-But first, you
-need to make some modifications to {\tt thesis.tex}.
-The title of your report, committee members, etc.,
-are specified in {\tt thesis.tex}. All of the things that
-you need to modify are indicated by comments beginning with five consecutive asterisks, 
-so search for ``*****'' in {\tt thesis.tex} and make the necessary changes.
-
-You put the actual content of your report 
-in the following files:
+\subsection{Malware Families}
+Even though there are 240 malware families in the KronoDroid dataset, we focus our attention
+on five malware families with the largest number of samples. By doing so, we can
+study concept drift and evaluate model performance for a meaningful period of time.
+This approach is similar to the one followed by Mishra, A. et al. in \cite{mishra2024cluster}.
+The five malware families are:
 \begin{itemize}
-\item {\tt abs.tex} --- abstract
-\item {\tt ack.tex} --- acknowledgements
-\item {\tt chap1.tex}, {\tt chap2.tex}, and so on --- chapters
-\item {\tt bib.tex} --- references
-\item {\tt appA.tex}, {\tt appB.tex}, and so on --- appendices (if any)
+    \item \textbf{Airpush/StopSMS}: adware that displays unwanted ads and may silently collect
+    and forward user data \cite{fsecure2025airpush}. 
+    \item \textbf{SMSReg}: riskware discovered as the ``Battery Improve'' application \cite{fsecure2025smsreg}.
+    \item \textbf{Malap}: spyware that collects sensitive information from the device \cite{guerra2021kronodroid}.
+    \item \textbf{Boxer}: trojan that pretends to be a legitime installer but actually sends premium-rate
+    SMS messages unbeknown to the user \cite{fsecure2025boxer}.
+    \item \textbf{Agent}: trojan that downloads and installs adware or malware into a victim's
+    device \cite{fsecure2025agent}.
 \end{itemize}
+
+\subsection{Data Preprocessing}
+Each malware sample contains 489 features, 200 static and 289 dynamic. However, some features
+are not numerical but rather text.
+As a preprocessing step, we remove all non-numerical features using the Polars library
+type inference capabilities \cite{polarsdatatypes}.
+
+Additionally, we discard samples whose \textbf{HighestModDate} timestamp seems
+to be incorrect. In concrete, only samples with a timestamp
+$t$ in the format ``M/D/YYYY'' and year in range $[2000, 2025]$ are kept.
+Figure \ref{fig:kronodroid_summary} shows a summary of the KronoDroid dataset
+after preprocessing.
+
+\begin{figure}[h!]
+    \begin{center}
+        \textbf{Kronodroid Dataset (dimensionality = 470)}
+        \vspace{0.5cm}
+        
+        \begin{tabular}{lccc}
+            \toprule
+            \textbf{Family} & \textbf{Samples} & \textbf{Earliest Date} & \textbf{Latest Date} \\
+            \midrule
+            Agent               & 2826 & 2008-02-28 & 2020-07-17 \\
+            Airpush/StopSMS     & 7760 & 2008-02-29 & 2018-06-15 \\
+            Boxer               & 3597 & 2005-01-01 & 2018-06-15 \\
+            Malap               & 4018 & 2008-02-29 & 2020-11-11 \\
+            SMSreg              & 4989 & 2008-02-29 & 2020-11-09 \\
+            \bottomrule
+            Total             & 23190 \\
+        \end{tabular}
+        \caption{Summary of the Kronodroid dataset after preprocessing.}
+        \label{fig:kronodroid_summary}
+    \end{center}
+\end{figure}
+
+Contrary to usual machine learning tasks where we perform data normalization or standardization
+at the preprocessing step, concept drift analysis requires a different approach. Details about
+how we handle data standardization are explained in Section \ref{sec:workflow}.
+
+\section{Experiment Setup}
+
+\section{Developer Setup}
+
+\section{Experimentation Workflow\label{sec:workflow}}
