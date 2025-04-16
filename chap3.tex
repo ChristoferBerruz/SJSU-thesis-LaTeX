@@ -68,7 +68,125 @@ Contrary to usual machine learning tasks where we perform data normalization or 
 at the preprocessing step, concept drift analysis requires a different approach. Details about
 how we handle data standardization are explained in Section \ref{sec:workflow}.
 
-\section{Experiment Setup}
+\section{Experiment Setup\label{sec:setup}}
+In this project, we conduct three experiments to evaluate the benefits of using
+drift detection for malware detection: static training, periodic retraining,
+and drift-aware retraining. In each experiment, we train four machine learning classifiers:
+Multilayer Perceptron (MLP), Support Vector Machine (SVM), Random Forest (RF),
+and eXtreme Gradient Boosting (XGBoost).
+
+The expectation is that periodic retraining will yield the highest accuracy
+for all models accross all malware families while the static training accuracy
+will be the lowest. The drift-aware retraining accuracy is expected to be
+between the static training and periodic retraining accuracies providing
+a good trade-off between accuracy and training efficiency.
+
+\subsection{Definitions}
+
+Let $R = \{R_{O}, R_{K}\}$ be a drift detector model where $R_{O}$ is a
+One-Class Support Vector Machine (OCSVM) and $R_{K}$ is a Minibatch K-Means (MBKM).
+
+Furthermore, let $M = \{M_{MLP}, M_{SVM}, M_{RF}, M_{XGB}\}$ be
+a machine learning model where $M_{MLP}$ is a Multilayer Perceptron,
+$M_{SVM}$ is a Support Vector Machine, $M_{RF}$ is a Random Forest,
+and $M_{XGB}$ is an eXtreme Gradient Boosting model.
+
+Let $F$ be a malware family and $D$ be the kronodroid dataset. Moreover,
+let $F_{drift}$ be the malware family where we want to detect drift and
+$F_{control}$ be a different malware family with respect to $F_{drift}$.
+During our binary classification experiments, we will consider samples from $F_{drift}$
+to be considered of class $1$ and samples from $F_{control}$ to be considered
+of class $0$.
+
+For a given malware family $F$, \textbf{we assume the samples to be ordered}
+by the \textbf{HighestModDate} timestamp.
+We denote the samples in $F$ as
+$F = \{f^{0}, f^{1}, \ldots, f^{N-1}\}$, where $f^{i}$ is the $i$-th sample
+and $N$ is the number of samples in $F$. Given the ordered property,
+we know that $f^{i} \prec f^{j}$ if $i < j$.
+
+For a given malware family $F$,
+let $B$ be a temporal batch of samples. In our experiments, we define batches
+of size $b = 50$ samples for a total of $K$ batches. We denote the $i$-th batch as
+$$B_{i} = \{f^{i \cdot b}, f^{i \cdot b + 1}, \ldots, f^{(i+1) \cdot b - 1}\}
+~\forall~ i \in \{0, 1, \ldots,  K\}, K = \lfloor \frac{N}{b} \rfloor$$.
+For example, the first batch is $B_{0} = \{f^{0}, f^{1}, \ldots, f^{49}\}$.
+The second batch is $B_{1} = \{f^{50}, f^{51}, \ldots, f^{99}\}$.
+The last batch is $B_{K-1} = \{f^{(K-1) \cdot b}, f^{(K-1) \cdot b + 1}, \ldots, f^{N-1}\}$.
+
+Let $B_{i}^{train}$ be the training subset and $B_{i}^{test}$ be the testing subset such that
+$$B_{i} = B_{i}^{train} \cup B_{i}^{test}$$
+where $B_{i}^{train}$ contains the first $p$ samples in $B_{i}$ and
+$B_{i}^{test}$ contains the remaining $b - p$ samples in $B_{i}$. We use
+$p = 30$ samples for training and $b - p = 50 - 30 = 20$ samples for testing.
+For example, for the first batch $B_{0}$, we have
+$B_{0}^{train} = \{f^{0}, f^{1}, \ldots, f^{29}\}$
+and
+$B_{0}^{test} = \{f^{30}, f^{31}, \ldots, f^{49}\}$.
+
+Finally, let $\mathcal{B}_i = \{B_i, B_{i+1}\}$.
+
+\subsection{Training a model}
+For a given pair of malware families $(F_{drift}, F_{control})$ with $K$ batches
+defined over $F_{drift}$, we let $X_{train}$ and $X_{test}$ be
+subsets of $F_{control}$ such that
+$$X_{train} \cap X_{test} = \varnothing$$
+
+Let $D_{i}^{train} = (B_{i}^{train} \cup X_{train})$ and
+$D_{i}^{test} = (B_{i}^{test} \cup X_{test})$. Then, a given model
+$M_i$ is trained on $D_{i}^{train}$ and evaluated on $D_{i}^{test}$.
+Ideally, $|X_{train}| \approx p$ and $|X_{test}| \approx b - p$ to avoid
+dataset imbalance. As a result, in all experiments we use
+$$X_{train} = \{f_{control}^{0}, f_{control}^{1}, \ldots, f_{control}^{p-1}\}$$
+$$X_{test} = \{f_{control}^{p}, f_{control}^{p+1}, \ldots, f_{control}^{b-1}\}$$
+Therefore, $|X_{train}| = p = 30$ and $|X_{test}| = b - p = 20$.
+
+The notation $M_i^*$ indicates that the model is an \textbf{optimal model}
+that maximizes the accuracy over $D_{i}^{test}$.
+
+\subsection{Static Training\label{sec:static_training}}
+In this experiment, we train a model $M_0^*$. We define the overall accuracy $A$
+of the static training experiment
+as
+$$A = \sum_{j=0}^{K-1} \frac{c_j}{|D_j^{test}|}$$
+where $c_j$ is the number of correct predictions made by $M_0^*$ over $D_j^{test}$.
+
+Note that this experiment simulates the scenario where we train once
+and we do not retrain the model for inferences in the future.
+
+\subsection{Periodic Retraining\label{sec:periodic_retraining}}
+In this experiment, we train $M_i^* ~\forall~i \in \{0, 1, \ldots, K-1\}$.
+
+Then, the overall accuracy $A$ of the periodic retraining experiment
+is defined as $$A = \sum_{i=0}^{K-1} \frac{c_i}{|D_i^{test}|}$$
+where $c_i$ is the number of correct predictions made by $M_i^*$ over $D_i^{test}$.
+
+The periodic retraining experiment simulates the scenario where we
+retrain the model every $b$ samples.
+\subsection{Drift-Aware Retraining\label{sec:drift_aware_retraining}}
+Assume a drift detector $R$ deems the $i$-th batch $B_i$ to be
+\textbf{drifting} as a function of only $F_{drift}$.
+We define $i$ as a \textbf{drift point}.
+Furthermore, let $i < j < z$ be different drift points detected.
+
+In this experiment, we train $M_0^*$ on $D_0^{train}$ and
+we calculate a partial accuracy $a_0$ as
+$$a_0 = \sum_{l=0}^{l=i-1} \frac{c_l}{|D_l^{test}|}$$
+where $c_l$ is the number of correct predictions made by $M_0^*$ over $D_l^{test}$.
+
+Then, we train $M_i^*$ on $D_i^{train}$ and we calculate a partial accuracy
+$$a_i = \sum_{l=i}^{l=j-1} \frac{c_l}{|D_l^{test}|}$$
+where $c_l$ is the number of correct predictions made by $M_i^*$ over $D_l^{test}$.
+Then we train $M_j^*$ on $D_j^{train}$ and we calculate a partial accuracy
+$$a_j = \sum_{l=j}^{l=z-1} \frac{c_l}{|D_l^{test}|}$$
+where $c_l$ is the number of correct predictions made by $M_j^*$ over $D_l^{test}$.
+
+We repeat this process until we are able to score
+$D_{K-1}^{test}$.
+
+Then, the overall accuracy $A$ of the drift-aware retraining experiment
+is the sum of all partial accuracies. Note that the number of partial
+accuracies is dependent on the number of drift points.
 
 \section{Developer Setup}
 
